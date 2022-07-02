@@ -1,0 +1,70 @@
+const {Button} = Reactstrap;
+
+class Quote extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+  
+  render() {
+    if (this.props.quote === null)
+      return (<div></div>)
+    
+    return (
+      <div>
+        <blockquote className="blockquote mb-0">
+          <p id="text">
+            {' '}{this.props.quote.quote}
+          </p>
+          <p id="author" className="blockquote-footer">
+            {this.props.quote.author}
+          </p>
+        </blockquote>
+      </div>
+    );
+  }
+}
+
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      quoteIdx: 0,
+      quotes: []
+    };
+  }
+  
+  componentDidMount() {
+  fetch("https://gist.githubusercontent.com/camperbot/5a022b72e96c4c9585c32bf6a75f62d9/raw/e3c6895ce42069f0ee7e991229064f167fe8ccdc/quotes.json")
+    .then((res) => res.json())
+    .then((json) => {
+      this.setState({quotes: json["quotes"]})
+    })
+  }
+  
+  updateCount() {
+    this.setState((prevState, props) => {
+      return {quoteIdx: (prevState.quoteIdx + 1) % prevState.quotes.length}
+    });
+  }
+  
+  tweetQuote(text) {
+    console.log(text)
+  }
+  
+  render() {
+    let quote = this.state.quotes.length === 0 ? null : this.state.quotes[this.state.quoteIdx]
+    let tweetUrl = "https://twitter.com/intent/tweet?&text=" + (quote ? encodeURIComponent('"' + quote.quote + '" ' + quote.author) : null)
+    
+    return (
+        <div id="quote-box">
+          <Quote quote={quote} />
+          <a className="button" title="Tweet this quote" id="tweet-quote" target="_top" href={tweetUrl}><i className="fa fa-twitter"></i></a>
+          <button title="Next quote" className="button" id="new-quote" onClick={() => this.updateCount()}>
+            <i className="fa fa-chevron-right"></i>
+          </button>
+        </div>
+    );
+  }
+}
+
+ReactDOM.render(<App />, document.getElementById("app"));
