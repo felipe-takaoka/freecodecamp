@@ -1,0 +1,54 @@
+html, body {
+  height: 100%;
+}
+
+body {
+  background: #1d1e25;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#display {
+  color: white;
+  border-radius: 10px;
+  background-color: grey;
+  justify-content: center;
+  text-align: center;
+  height: 30px;
+}
+
+.pulse {
+  animation: pulse 0.4s;
+}
+
+#drum-machine {
+  background-color: black;
+  padding: 10px;
+  border-radius: 8px;
+  align-items: center;
+}
+#drum-machine .drum-pad {
+  margin: 5px;
+  height: 40px;
+  width: 40px;
+  padding: 0px;
+  border-radius: 4px;
+  outline: none;
+  border: none;
+}
+#drum-machine .drum-pad:hover {
+  opacity: 0.9;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 255, 0, 0.75);
+  }
+  85% {
+    box-shadow: 0 0 0 20px rgba(255, 0, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+  }
+}
