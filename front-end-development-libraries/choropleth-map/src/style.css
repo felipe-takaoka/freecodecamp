@@ -1,0 +1,52 @@
+html {
+  height: 100%;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  height: 100%;
+  background: hsl(233deg 12% 13%);
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+#title {
+  color: white;
+  font-size: 2em;
+}
+
+#description {
+  color: gray;
+  font-size: 1em;
+}
+
+.cell:hover {
+  stroke: white;
+  stroke-width: 0.8;
+}
+
+#tooltip {
+  width: 80px;
+  position: absolute;
+  background: white;
+  border-radius: 3px;
+  padding: 5px;
+}
+
+#legend {
+  position: absolute;
+}
+
+.legend-text {
+  font-size: 0.6em;
+  fill: gray;
+}
+
+#tooltip {
+  width: 100px;
+  position: absolute;
+  background: white;
+  border-radius: 3px;
+  padding: 5px;
+}

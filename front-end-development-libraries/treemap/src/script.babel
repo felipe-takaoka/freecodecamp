@@ -1,0 +1,147 @@
+function wrap(text, width) {
+    text.each(function () {
+        var text = d3.select(this),
+            words = text.text().split(/\s+/).reverse(),
+            word,
+            line = [],
+            lineNumber = 0,
+            lineHeight = 1.1, // ems
+            x = text.attr("x"),
+            y = text.attr("y"),
+            dy = 0, //parseFloat(text.attr("dy")),
+            tspan = text.text(null)
+                        .append("tspan")
+                        .attr("x", x)
+                        .attr("y", y)
+                        .attr("dy", dy + "em");
+        while (word = words.pop()) {
+            line.push(word);
+            tspan.text(line.join(" "));
+            if (tspan.node().getComputedTextLength() > width) {
+                line.pop();
+                tspan.text(line.join(" "));
+                line = [word];
+                tspan = text.append("tspan")
+                            .attr("x", x)
+                            .attr("y", y)
+                            .attr("dy", ++lineNumber * lineHeight + dy + "em")
+                            .text(word);
+            }
+        }
+    });
+}
+
+
+const width  = 1000;
+const height = 400;
+
+const svg = d3
+  .select(".visHolder")
+  .append("svg")
+  .attr("width", width)
+  .attr("height", height);
+
+const tooltip = d3
+  .select(".visHolder")
+  .append("div")
+  .attr("id", "tooltip")
+  .style("opacity", 0);
+
+const url = "https://cdn.freecodecamp.org/testable-projects-fcc/data/tree_map/video-game-sales-data.json"
+d3.json(url, ready)
+
+function ready(error, data) {
+  const root = d3
+    .hierarchy(data)
+    .sum((d) => d.value)
+    .sort((d1, d2) =>
+          d2.height - d1.height ||
+          d2.value - d1.value)
+  
+  d3.treemap()
+    .size([width, height])
+    (root);
+  
+  const colorLabels = data
+    .children.map((d) => d.name);
+  const colorScale = d3
+    .scaleOrdinal()
+    .domain([colorLabels])
+    .range(d3.schemeCategory20b);
+  
+  function onMouseMove(d) {
+    tooltip
+      .attr("data-value", d.value)
+      .html(`
+          <div class="tooltip">
+            ${d.data.name}, ${d.data.category}: ${d.data.value}
+          </div>
+          `)
+      .style("opacity", 0.7)
+      .style("left", `${d.x1 + 10}px`)
+      .style("top", `${d.y0 + 350}px`);
+  }
+
+  function onMouseOut() {
+    tooltip.style("opacity", 0);
+  }
+  
+  svg
+    .selectAll("rect")
+    .data(root.leaves())
+    .enter()
+    .append("rect")
+    .attr("class", "tile")
+    .attr("x", (d) => d.x0)
+    .attr("y", (d) => d.y0)
+    .attr("width", (d) => d.x1 - d.x0)
+    .attr("height", (d) => d.y1 - d.y0)
+    .attr("data-name", (d) => d.data.name)
+    .attr("data-category", (d) => d.data.category)
+    .attr("data-value", (d) => d.data.value)
+    .attr("fill", (d) => 
+          colorScale(d.parent.data.name))
+    .on("mousemove", onMouseMove)
+    .on("mouseout", onMouseOut);
+  
+  svg
+    .selectAll("text")
+    .data(root.leaves())
+    .enter()
+    .append("text")
+    .append("tspan")
+    .attr("class", "tree-map-labels")
+    .attr("x", (d) => d.x0 + 5)
+    .attr("y", (d) => d.y0 + 15)
+    .text((d) => d.data.name)
+    .call(wrap, 60);
+  
+  const legend = d3
+    .select("#legend")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", 60);
+  
+  legend
+    .selectAll("rect")
+    .data(colorLabels)
+    .enter()
+    .append("rect")
+    .attr("x", (d, i) => (i % 6) * 160)
+    .attr("y", (d, i) => Math.floor(i / 6) * 30)
+    .attr("width", 20)
+    .attr("height", 20)
+    .attr("fill", (d) => colorScale(d))
+    .attr("class", "legend-item");
+  
+  legend
+    .selectAll("text")
+    .data(colorLabels)
+    .enter()
+    .append("text")
+    .attr("x", (d, i) => 25 + (i % 6) * 160)
+    .attr("y", (d, i) => Math.floor(i / 6) * 30 - 14)
+    .text((d) => d)
+    .attr("fill", "gray")
+    .style("font-size", "0.8em");
+}

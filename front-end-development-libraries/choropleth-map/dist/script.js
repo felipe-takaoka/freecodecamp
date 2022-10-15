@@ -1,0 +1,112 @@
+const width = 1000;
+const height = 600;
+
+const svg = d3.
+select(".visHolder").
+append("svg").
+attr("width", width).
+attr("height", height);
+
+const path = d3.
+geoPath();
+
+const legend = svg.
+append("g").
+attr("class", "legend").
+attr("id", "legend").
+attr("transform", "translate(580, 0)");
+
+const tooltip = d3.
+select(".visHolder").
+append("div").
+attr("id", "tooltip").
+style("opacity", 0);
+
+const dataUrls = [
+"https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/for_user_education.json",
+"https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json"];
+
+const promises = dataUrls.map(url => d3.json(url));
+Promise.all(promises).then(ready);
+
+function ready(values) {
+  const [educationData, countiesData] = values;
+
+  const geometriesLookup = countiesData.
+  objects.counties.geometries.
+  reduce((acc, g) => ({ ...acc, [g.id]: g }), {});
+
+  const educationLookup = educationData.
+  reduce((acc, g) => ({ ...acc, [g.fips]: g }), {});
+
+  const geometries = educationData.
+  map(d => ({ ...d, ...geometriesLookup[d.fips] }));
+  const data = { ...countiesData };
+  data.objects.counties.geometries = geometries;
+
+  const feature = topojson.feature(data, data.objects.counties);
+
+  const colorScale = d3.
+  scaleThreshold(
+  [3, 12, 21, 30, 39, 48, 57, 66],
+  d3.schemeBuPu[8]);
+
+
+  legend.
+  selectAll("rect").
+  data(colorScale.range()).
+  enter().
+  append("rect").
+  attr("width", 30).
+  attr("height", 10).
+  attr("x", (d, i) => -5 + i * 30).
+  attr("y", 20).
+  attr("fill", d => d);
+
+  legend.
+  selectAll("text").
+  data(colorScale.domain()).
+  enter().
+  append("text").
+  attr("x", (d, i) => i * 30).
+  attr("y", 50).
+  attr("class", "legend-text").
+  text(d => `${d}%`);
+
+  function onMouseMove(e, d) {
+    const data = educationLookup[d.id];
+    tooltip.
+    attr("data-education", data.bachelorsOrHigher).
+    html(`
+          <div class="tooltip-county">
+            ${data.area_name}, ${data.state}
+          </div>
+          ${data.bachelorsOrHigher}%
+          `).
+    style("opacity", 0.7).
+    style("left", `${e.clientX + 10}px`).
+    style("top", `${e.clientY + 10}px`);
+  }
+
+  function onMouseOut() {
+    tooltip.style("opacity", 0);
+  }
+
+  svg.
+  append("g").
+  selectAll("path").
+  data(feature.features).
+  enter().
+  append("path").
+  attr("d", path).
+  attr("class", "county").
+  attr("data-state", (d, i) => geometries[i].state).
+  attr("data-area_name", (d, i) => geometries[i].area_name).
+  attr("data-fips", (d, i) => geometries[i].fips).
+  attr("data-education", (d, i) =>
+  geometries[i].bachelorsOrHigher).
+  attr("fill", (d, i) =>
+  colorScale(geometries[i].bachelorsOrHigher)).
+  on("mousemove", onMouseMove).
+  on("mouseout", onMouseOut);
+}
