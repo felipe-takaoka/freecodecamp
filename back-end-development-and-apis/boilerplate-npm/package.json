@@ -1,6 +1,10 @@
 {
   "name": "fcc-learn-npm-package-json",
   "author": "Felipe Takaoka",
+  "description": "Freecodecamp's Backend Development and Apis course assignments",
+  "keywords": ["freecodecamp", "backend", "api"],
+  "license": "MIT",
+  "version": "0.0.1",
   "dependencies": {
     "express": "^4.14.0"
   },
