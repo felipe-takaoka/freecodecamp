@@ -2,7 +2,7 @@ require("dotenv").config();
 let express = require("express");
 let app = express();
 
-app.use((req, res, next) => {
+app.use((req, _, next) => {
   // Mocked IP because using req.ip wasn't passing the tests
   console.log(`${req.method} ${req.path} - 81.65.133.173`);
   next();
@@ -23,5 +23,16 @@ app.use("/json", (_, res) => {
       : messageRaw;
   res.send({ message });
 });
+
+app.get(
+  "/now",
+  (req, _, next) => {
+    req.time = new Date().toString();
+    next();
+  },
+  (req, res) => {
+    res.send({ time: req.time });
+  }
+);
 
 module.exports = app;
