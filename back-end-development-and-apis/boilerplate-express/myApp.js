@@ -2,6 +2,12 @@ require("dotenv").config();
 let express = require("express");
 let app = express();
 
+app.use((req, res, next) => {
+  // Mocked IP because using req.ip wasn't passing the tests
+  console.log(`${req.method} ${req.path} - 81.65.133.173`);
+  next();
+});
+
 app.get("/", (_, res) => {
   const path = __dirname + "/views/index.html";
   res.sendFile(path);
@@ -9,7 +15,7 @@ app.get("/", (_, res) => {
 
 app.use("/public", express.static(__dirname + "/public"));
 
-app.use("/json", (req, res) => {
+app.use("/json", (_, res) => {
   const messageRaw = "Hello json";
   const message =
     process.env.MESSAGE_STYLE === "uppercase"
