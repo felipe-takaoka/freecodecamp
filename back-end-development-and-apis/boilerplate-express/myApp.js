@@ -1,4 +1,5 @@
 require("dotenv").config();
+let bodyParser = require("body-parser");
 let express = require("express");
 let app = express();
 
@@ -37,6 +38,10 @@ app.get(
 
 app.get("/:word/echo", (req, res) => {
   res.send({ echo: req.params.word });
+});
+
+app.route("/name").get((req, res) => {
+  res.send({ name: `${req.query.first} ${req.query.last}` });
 });
 
 module.exports = app;
