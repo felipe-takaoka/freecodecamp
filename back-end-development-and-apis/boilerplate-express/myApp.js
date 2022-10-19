@@ -9,6 +9,8 @@ app.use((req, _, next) => {
   next();
 });
 
+app.use(bodyParser.urlencoded({ extended: false }));
+
 app.get("/", (_, res) => {
   const path = __dirname + "/views/index.html";
   res.sendFile(path);
