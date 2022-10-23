@@ -24,11 +24,21 @@ app.get("/api/hello", function (req, res) {
 });
 
 app.get("/api/:date", (req, res) => {
-  let date = new Date(req.params.date);
+  const dateParam = req.params.date;
+  let date = new Date(dateParam);
+
   if (isNaN(date)) {
-    date = new Date(parseInt(req.params.date));
+    date = new Date(parseInt(dateParam));
   }
-  res.json({ unix: date.valueOf() , utc: date.toUTCString() });
+  if (isNaN(date)) {
+    res.json({ error: "Invalid Date" });
+  }
+  res.json({ unix: date.valueOf(), utc: date.toUTCString() });
+});
+
+app.get("/api/", (_, res) => {
+  const now = Date.now();
+  res.json({ unix: now.valueOf(), utc: now.toString() });
 });
 
 // listen for requests :)
