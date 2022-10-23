@@ -37,8 +37,8 @@ app.get("/api/:date", (req, res) => {
 });
 
 app.get("/api/", (_, res) => {
-  const now = Date.now();
-  res.json({ unix: now.valueOf(), utc: now.toString() });
+  const now = new Date();
+  res.json({ unix: now.valueOf(), utc: now.toUTCString() });
 });
 
 // listen for requests :)
