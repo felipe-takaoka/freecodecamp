@@ -11,8 +11,8 @@ mongoose.connect(process.env.MONGO_URI, {
 });
 
 let userSchema = new mongoose.Schema({
-  username: { type: String, unique: true , required: true },
-})
+  username: { type: String, unique: true, required: true },
+});
 
 let exerciseSchema = new mongoose.Schema({
   username: { type: String, required: true },
@@ -31,18 +31,33 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/views/index.html");
 });
 
-app.post("/api/users", (req, res) => {
-  console.log(req);
-  const username = req.body.username;
-  const newUser = new User({ username });
-  newUser.save((err, doc) => {
-    if (err) {
-      res.json(err);
-    } else {
-      res.json({ username: doc.username, id: doc._id });
-    }
+app
+  .route("/api/users")
+  .get((req, res) => {
+    User.find({}, (_, docs) => {
+      res.send(docs);
+    });
   })
-})
+  .post((req, res) => {
+    const username = req.body.username;
+    const newUser = new User({ username });
+    newUser.save((err, doc) => {
+      if (err) {
+        // Error adding an existing user:
+        // {
+        //   driver: true,
+        //   name: "MongoError",
+        //   index: 0,
+        //   code: 11000,
+        //   keyPattern: { username: 1 },
+        //   keyValue: { username: "usertest" },
+        // };
+        res.json({ error: `Error trying to add user ${username}` });
+      } else {
+        res.json({ username: doc.username, id: doc._id });
+      }
+    });
+  });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
   console.log("Your app is listening on port " + listener.address().port);
