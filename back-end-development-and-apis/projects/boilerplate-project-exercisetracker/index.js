@@ -54,7 +54,7 @@ app
         // };
         res.json({ error: `Error trying to add user ${username}` });
       } else {
-        res.json({ username: doc.username, id: doc._id });
+        res.json({ username: doc.username, _id: doc._id });
       }
     });
   });
@@ -65,15 +65,48 @@ app.post("/api/users/:_id/exercises", (req, res) => {
   const { description, duration } = req.body;
   const newExercise = new Exercise({ user_id, description, duration, date });
 
-  User.findById(user_id, null, null, (err, _) => {
+  User.findById(user_id, null, null, (err, user_data) => {
     if (err) {
-      res.send(`Error finding user ${user_id}`)
+      res.send(`Error finding user ${user_id}`);
     } else {
-      newExercise.save((err, doc) => {
-        res.send(doc);
+      newExercise.save((err, exercise_data) => {
+        res.send({ ...user_data._doc, ...exercise_data._doc });
       });
     }
   });
+});
+
+app.get("/api/users/:_id/logs", (req, res) => {
+  const user_id = req.params._id;
+  const { from, to, limit } = req.query;
+  let query = { user_id };
+  query = from ? {...query, date: { $gte: new Date(from) } } : query;
+  query = to ? {...query, date: {...query.date, $lte: new Date(to) } } : query;
+  const done = (err, docs) => {
+    if (err) {
+      res.send(err);
+      // res.send(`Error finding user ${user_id}`);
+    } else {
+      const logs = {
+        log: docs.map(({ user_id, description, duration, date }) => ({
+          user_id,
+          duration: parseInt(duration),
+          description: description.toString(),
+          date: date.toString(),
+        })),
+        count: docs.length,
+      };
+      res.send(logs);
+    }
+  };
+
+  const parsedLimit = parseInt(limit)
+  const exQuery = Exercise.find(query);
+  if (parsedLimit) {
+    exQuery.limit(parsedLimit).exec(done);
+  } else {
+    exQuery.exec(done);
+  }
 });
 
 const listener = app.listen(process.env.PORT || 3000, () => {
