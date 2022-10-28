@@ -43,15 +43,6 @@ app
     const newUser = new User({ username });
     newUser.save((err, doc) => {
       if (err) {
-        // Error adding an existing user:
-        // {
-        //   driver: true,
-        //   name: "MongoError",
-        //   index: 0,
-        //   code: 11000,
-        //   keyPattern: { username: 1 },
-        //   keyValue: { username: "usertest" },
-        // };
         res.json({ error: `Error trying to add user ${username}` });
       } else {
         res.json({ username: doc.username, _id: doc._id });
@@ -70,7 +61,15 @@ app.post("/api/users/:_id/exercises", (req, res) => {
       res.send(`Error finding user ${user_id}`);
     } else {
       newExercise.save((err, exercise_data) => {
-        res.send({ ...user_data._doc, ...exercise_data._doc });
+        const { _id, username } = user_data._doc;
+        const { description, duration, date } = exercise_data._doc;
+        res.json({
+          _id,
+          username,
+          description,
+          duration,
+          date: date.toDateString(),
+        });
       });
     }
   });
@@ -80,8 +79,10 @@ app.get("/api/users/:_id/logs", (req, res) => {
   const user_id = req.params._id;
   const { from, to, limit } = req.query;
   let query = { user_id };
-  query = from ? {...query, date: { $gte: new Date(from) } } : query;
-  query = to ? {...query, date: {...query.date, $lte: new Date(to) } } : query;
+  query = from ? { ...query, date: { $gte: new Date(from) } } : query;
+  query = to
+    ? { ...query, date: { ...query.date, $lte: new Date(to) } }
+    : query;
   const done = (err, docs) => {
     if (err) {
       res.send(err);
@@ -92,7 +93,7 @@ app.get("/api/users/:_id/logs", (req, res) => {
           user_id,
           duration: parseInt(duration),
           description: description.toString(),
-          date: date.toString(),
+          date: date.toDateString(),
         })),
         count: docs.length,
       };
@@ -100,7 +101,7 @@ app.get("/api/users/:_id/logs", (req, res) => {
     }
   };
 
-  const parsedLimit = parseInt(limit)
+  const parsedLimit = parseInt(limit);
   const exQuery = Exercise.find(query);
   if (parsedLimit) {
     exQuery.limit(parsedLimit).exec(done);
